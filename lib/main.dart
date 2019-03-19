@@ -8,14 +8,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'IP Calculator',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primaryColor: Colors.white,
+        accentColor: Colors.black,
       ),
       home: Scaffold(
         appBar: AppBar(
           title: Text('IP Calculator'),
         ),
         body: Center(
-          child: Text('Ip Calculator'),
+          child: TextField()
         ),
       ),
     );
