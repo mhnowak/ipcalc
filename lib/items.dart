@@ -19,6 +19,10 @@ class _SomePageState extends State<SomePage>{
 
   // Controllers
   TextEditingController _ipCon = TextEditingController();
+  TextEditingController _subsCon = TextEditingController();
+  TextEditingController _subsCountCon = TextEditingController();
+  bool _isEven = false;
+  bool _initial = true;
 
   // Strings
   String _ipStr = "IPs";
@@ -26,10 +30,24 @@ class _SomePageState extends State<SomePage>{
   String _networkStr = "Network Address";
   String _broadcastStr = "Broadcast Address";
   String _rangeStr = "Network Address - Broadcast Address";
-  String _hostsStr = "Hosts";
+  String _hostsStr = "254";
   String _classStr = "Class";
 
-  // Updates everything
+  List<SubNetwork> subNets = new List<SubNetwork>();
+
+  void dummySubNets() {
+    // Resets subNets (so there is no repetition)
+    subNets = new List<SubNetwork>();
+    subNets.add(new SubNetwork.interface());
+    subNets.add(new SubNetwork.test());
+    subNets.add(new SubNetwork.test());
+    subNets.add(new SubNetwork.test());
+    subNets.add(new SubNetwork.test());
+    subNets.add(new SubNetwork.test());
+    subNets.add(new SubNetwork.test());
+  }
+
+  // Updates IP
   void updateEveryIP(val) {
     setState(() {
       // Get ip Input String
@@ -60,8 +78,121 @@ class _SomePageState extends State<SomePage>{
     });
   }
 
+  // Even subnetworks
+  void updateEven(val) {
+    int subNetsNum;
+    // Checks if it's valid
+    try {
+      subNetsNum = int.parse(val);
+    } on FormatException {
+      return;
+    }
+
+    int subHosts = (int.parse(_hostsStr) + 2) ~/ subNetsNum;
+    // When there are not enough hosts
+    if(subHosts < 2)
+      return;
+
+    setState(() {
+      // Resets subNets (so there is no repetition)
+      subNets = new List<SubNetwork>();
+      subNets.add(new SubNetwork.interface());
+
+      Address helperAddress = _network;
+      for(int i = 0; i < subNetsNum; i++) {
+        String out1 = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
+        helperAddress.address += subHosts - 1;
+        String out2 = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
+        subNets.add(new SubNetwork(out1, out2, subHosts - 2));
+      }
+    });
+  }
+
+  Row row() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                  "Are even",
+                  style: TextStyle(
+                    fontSize: 14,
+                  )
+              ),
+              Switch(
+                value: _isEven,
+                onChanged: (val) {
+                  setState(() {
+                    _isEven = val;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                  "How many subnetworks",
+                  style: TextStyle(
+                    fontSize: 14,
+                  )
+              ),
+              SizedBox(
+                width: 150,
+                child: _item.inputItem("", "Subnetworks", _subsCountCon, _isEven),
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column subCol() {
+    return Column(
+      children: <Widget>[
+        _item.inputItem("IP", "Please enter an IP Address", _ipCon, true),
+        row(),
+        _item.inputItem("", 'Use comma to separate subnetworks', _subsCon, !_isEven),
+      ],
+    );
+  }
+
+  Column itemCol(int index) {
+    return Column(
+      children: <Widget>[
+        _item.outputItem((index).toString() + ". " + "(" +
+            subNets[index].number + ") Hosts: " +
+            subNets[index].hosts.toString() +
+            (subNets[index].realHosts != -1 ? ". Real number of hosts: " +
+            subNets[index].realHosts.toString() : "") + ".",
+            subNets[index].rangeStr),
+        _item.outputItem("Network Address", subNets[index].networkStr),
+        _item.outputItem("Broadcast Address", subNets[index].broadcastStr),
+        //_item.outputItem("Range", subNets[index].rangeStr),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    //dummySubNets();
+    //subNets = new List<SubNetwork>();
+    if(_initial) {
+      _initial = false;
+      subNets.add(new SubNetwork.interface());
+    }
+    _subsCountCon.addListener(() {
+      updateEven(_subsCountCon.text);
+    });
     _ipCon.addListener(() {
       // Checks if we can convert string to an address
       if(_operations.canCreate(_ipCon.text))
@@ -85,7 +216,7 @@ class _SomePageState extends State<SomePage>{
             ListView(
               padding: EdgeInsets.all(8.0),
               children: <Widget>[
-                _item.inputItem("IP", "Please enter an IP Address", _ipCon),
+                _item.inputItem("IP", "Please enter an IP Address", _ipCon, true),
                 _item.outputItem("Subnetwork Mask", _smStr),
                 _item.outputItem("Network Address", _networkStr),
                 _item.outputItem("Broadcast Address", _broadcastStr),
@@ -95,12 +226,26 @@ class _SomePageState extends State<SomePage>{
   //          Text('$_ipStr'),
               ],
             ),
-            ListView(
-              padding: EdgeInsets.all(8.0),
-              children: <Widget>[
-                _item.inputItem("IP", "Please enter an IP Address", _ipCon),
-                _item.inputItem("", "Number of subnetworks", _ipCon),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+               children: <Widget>[
+                 Expanded(
+                   child: new ListView.separated(
+                     itemCount: subNets.length,
+                     separatorBuilder: (BuildContext context, int index) {
+                       return Divider(height: 3, color: Colors.black38);
+                     },
+                     itemBuilder: (BuildContext context, int index) {
+                       if(!subNets[index].isItem)
+                         return subCol();
+
+                       return itemCol(index);
+                     },
+                   ),
+                 ),
+               ],
+             ),
             ),
           ],
         ),
@@ -111,13 +256,19 @@ class _SomePageState extends State<SomePage>{
 
 class Items {
 
-  Container inputItem(String name, String hintText,TextEditingController con) { // Function onUpdateFunc,
+  TextStyle style() {
+    return TextStyle(
+      fontSize: 21,
+    );
+  }
+
+  Container inputItem(String name, String hintText,
+      TextEditingController con, bool isEnabled) { // Function onUpdateFunc,
     return new Container(
         padding: EdgeInsets.only(left: 8.0, right: 8.0),
         child: TextField(
-          style: TextStyle(
-            fontSize: 21,
-          ),
+          style: style(),
+          enabled: isEnabled,
           controller: con,
           //onChanged: (val) => onUpdateFunc(val),
           decoration: InputDecoration(
@@ -129,9 +280,9 @@ class Items {
     );
   }
 
-  Container outputItem(String name, String output) {
-    return new Container(
-      padding: EdgeInsets.all(8.0),
+  Padding outputItem(String name, String output) {
+    return new Padding(
+      padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -171,9 +322,7 @@ class Items {
           ),
           Text(
             '$output',
-            style: TextStyle(
-              fontSize: 21,
-            ),
+            style: style(),
           ),
         ],
       ),
