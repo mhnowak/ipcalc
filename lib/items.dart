@@ -35,6 +35,7 @@ class _SomePageState extends State<SomePage>{
 
   List<SubNetwork> subNets = new List<SubNetwork>();
 
+  // creates dummy subNetworks
   void dummySubNets() {
     // Resets subNets (so there is no repetition)
     subNets = new List<SubNetwork>();
@@ -91,6 +92,7 @@ class _SomePageState extends State<SomePage>{
 
     subNetsNum = _operations.toUpperPow(subNetsNum);
     int subHosts = (int.parse(_hostsStr) + 2) ~/ subNetsNum;
+
     // When there are not enough hosts
     if(subHosts < 2)
       return;
@@ -103,14 +105,25 @@ class _SomePageState extends State<SomePage>{
       subNets.add(new SubNetwork.interface());
       
       for(int i = 0; i < subNetsNum; i++) {
-        String out1 = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
+        // network
+        String network = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
+
+        // range
         helperAddress.address += 1;
         String range = helperAddress.toString();
+
+        // broadcast
         helperAddress.address += subHosts - 2;
-        String out2 = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
+        String broadcast = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
+
+        // range
         helperAddress.address -= 1;
         range = range + " - " + helperAddress.toString();
-        subNets.add(new SubNetwork(out1, out2, subHosts - 2, range));
+
+        // actually merge everything to SubNetwork
+        subNets.add(new SubNetwork(network, broadcast, subHosts - 2, range));
+
+        // next network address
         helperAddress.address += 2;
       }
     });
@@ -142,18 +155,31 @@ class _SomePageState extends State<SomePage>{
             _operations.toUpperPow(hostsInSubnetworksNum[i - 1] + 2) - 2, i));
       }
 
+      // sorting from highest to lowest
       subNets.sort((SubNetwork b, SubNetwork a) => a.realHosts.compareTo(b.realHosts));
-      //  subNets = subNets.reversed;
+
+      // Produce
       for(int i = 1; i < subNets.length; i++) {
+        // sets prefix
         String persPref = (32 - _operations.whatPrefix(subNets[i].realHosts + 2)).toString();
+
+        // network
         subNets[i].networkStr = helperAddress.toString() + "/" + persPref;
+
+        // range 1st-part
         helperAddress.address += 1;
         String range = helperAddress.toString();
+
+        // broadcast
         helperAddress.address += subNets[i].realHosts;
         subNets[i].broadcastStr = helperAddress.toString() + "/" + persPref;
+
+        // range last-part
         helperAddress.address -= 1;
         range = range + " - " + helperAddress.toString();
         subNets[i].rangeStr = range;
+
+        // next network address
         helperAddress.address += 2;
       }
     });

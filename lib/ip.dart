@@ -136,14 +136,13 @@ class AddressOperations {
     return i;
   }
 
-
 }
 
 class SubNetwork {
   String number = "3";
   int hosts = 340;
   int realHosts = 510;
-  bool isItem = true;
+  bool isItem = true; // determinates if it's interface or not
 
   // Strings
   String networkStr = "192.168.0.10/24";
@@ -152,6 +151,7 @@ class SubNetwork {
   // String smStr = "Subnetwork mask";
   // String hostsStr = "Hosts";
 
+  // Simplest subnetwork
   SubNetwork(String net, String broad, int hos, String ran) {
     this.networkStr = net;
     this.broadcastStr = broad;
@@ -162,16 +162,36 @@ class SubNetwork {
 
   }
 
+  // unEven starting subnetwork constructor (you need to add other paramateres later)
   SubNetwork.unEven(int hos, int rea, int num) {
     this.hosts = hos;
     this.realHosts = rea;
     this.number = num.toString();
   }
 
+  // test subnetwork
   SubNetwork.test();
 
+  // Creates interface instead of an actual subnetwork
   SubNetwork.interface() {
     this.isItem = false;
     this.realHosts = 4294967300;
   }
+}
+
+class Warnings {
+
+  // when you want more than enough hosts
+  bool notEnoughHosts(int prefix, int hosts) => pow(2, prefix).toInt() <= hosts ? false : true;
+
+  // when you want to add negative number of subnetworks or negative number of hosts in subnetwork
+  bool negativeNumber(int x) => x < 0 ? true : false;
+
+  // Prefix 31 2^1 = 2 (network and broadcast reserved) so you have 0 addresses for other devices
+  bool noHostsInNetwork(int prefix) => prefix == 31 ? true : false;
+
+  // Prefix == 32
+  bool weirdPrefix(int prefix) => prefix == 32 ? true : false;
+
+
 }
