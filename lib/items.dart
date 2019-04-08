@@ -79,6 +79,7 @@ class _SomePageState extends State<SomePage>{
   }
 
   // Even subnetworks
+  // TODO: Clean up the code
   void updateEven(val) {
     int subNetsNum;
     // Checks if it's valid
@@ -88,22 +89,29 @@ class _SomePageState extends State<SomePage>{
       return;
     }
 
+    subNetsNum = _operations.toUpperPow(subNetsNum);
     int subHosts = (int.parse(_hostsStr) + 2) ~/ subNetsNum;
     // When there are not enough hosts
     if(subHosts < 2)
       return;
 
+
+    Address helperAddress = new Address(_ip.toString() + "/" + _ip.prefixNum.toString());
     setState(() {
       // Resets subNets (so there is no repetition)
       subNets = new List<SubNetwork>();
       subNets.add(new SubNetwork.interface());
-
-      Address helperAddress = _network;
+      
       for(int i = 0; i < subNetsNum; i++) {
         String out1 = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
-        helperAddress.address += subHosts - 1;
+        helperAddress.address += 1;
+        String range = helperAddress.toString();
+        helperAddress.address += subHosts - 2;
         String out2 = helperAddress.toString() + "/" + helperAddress.prefixNum.toString();
-        subNets.add(new SubNetwork(out1, out2, subHosts - 2));
+        helperAddress.address -= 1;
+        range = range + " - " + helperAddress.toString();
+        subNets.add(new SubNetwork(out1, out2, subHosts - 2, range));
+        helperAddress.address += 2;
       }
     });
   }
@@ -169,8 +177,9 @@ class _SomePageState extends State<SomePage>{
   Column itemCol(int index) {
     return Column(
       children: <Widget>[
-        _item.outputItem((index).toString() + ". " + "(" +
-            subNets[index].number + ") Hosts: " +
+        _item.outputItem((index).toString() + ". " +
+          (subNets[index].number == "" ? "" : "(" +
+            subNets[index].number + ")") + "Hosts: " +
             subNets[index].hosts.toString() +
             (subNets[index].realHosts != -1 ? ". Real number of hosts: " +
             subNets[index].realHosts.toString() : "") + ".",

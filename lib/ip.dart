@@ -143,12 +143,14 @@ class SubNetwork {
   // String smStr = "Subnetwork mask";
   // String hostsStr = "Hosts";
 
-  SubNetwork(String net, String broad, int hos) {
+  SubNetwork(String net, String broad, int hos, String ran) {
     this.networkStr = net;
     this.broadcastStr = broad;
     this.hosts = hos;
-    number = "";
-    realHosts = -1;
+    this.rangeStr = ran;
+    this.number = "";
+    this.realHosts = -1;
+
   }
 
   SubNetwork.test();
