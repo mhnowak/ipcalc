@@ -116,6 +116,49 @@ class _SomePageState extends State<SomePage>{
     });
   }
 
+  // UnEven subnetworks
+  void updateUnEven(val) {
+    List<String> hostsInSubnetwork = val.split(',');
+    List<int> hostsInSubnetworksNum = new List<int>();
+
+    // checks if numbers are numbers
+    for(int i = 0; i < hostsInSubnetwork.length; i++) {
+      try {
+        int h = int.parse(hostsInSubnetwork[i]);
+        hostsInSubnetworksNum.add(h);
+      } on FormatException {
+        return;
+      }
+    }
+
+    Address helperAddress = new Address(_ip.toString() + "/" + _ip.prefixNum.toString());
+    setState(() {
+      // Resets subNets (so there is no repetition)
+      subNets = new List<SubNetwork>();
+      subNets.add(new SubNetwork.interface());
+
+      for(int i = 1; i <= hostsInSubnetwork.length; i++) {
+        subNets.add(new SubNetwork.unEven(hostsInSubnetworksNum[i - 1],
+            _operations.toUpperPow(hostsInSubnetworksNum[i - 1] + 2) - 2, i));
+      }
+
+      subNets.sort((SubNetwork b, SubNetwork a) => a.realHosts.compareTo(b.realHosts));
+      //  subNets = subNets.reversed;
+      for(int i = 1; i < subNets.length; i++) {
+        String persPref = (32 - _operations.whatPrefix(subNets[i].realHosts + 2)).toString();
+        subNets[i].networkStr = helperAddress.toString() + "/" + persPref;
+        helperAddress.address += 1;
+        String range = helperAddress.toString();
+        helperAddress.address += subNets[i].realHosts;
+        subNets[i].broadcastStr = helperAddress.toString() + "/" + persPref;
+        helperAddress.address -= 1;
+        range = range + " - " + helperAddress.toString();
+        subNets[i].rangeStr = range;
+        helperAddress.address += 2;
+      }
+    });
+  }
+
   Row row() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -126,7 +169,7 @@ class _SomePageState extends State<SomePage>{
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text(
-                  "Are even",
+                  "Are subnetworks even?",
                   style: TextStyle(
                     fontSize: 14,
                   )
@@ -148,7 +191,7 @@ class _SomePageState extends State<SomePage>{
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text(
-                  "How many subnetworks",
+                  "How many even subnetworks?",
                   style: TextStyle(
                     fontSize: 14,
                   )
@@ -179,7 +222,7 @@ class _SomePageState extends State<SomePage>{
       children: <Widget>[
         _item.outputItem((index).toString() + ". " +
           (subNets[index].number == "" ? "" : "(" +
-            subNets[index].number + ")") + "Hosts: " +
+            subNets[index].number + ")") + " Hosts: " +
             subNets[index].hosts.toString() +
             (subNets[index].realHosts != -1 ? ". Real number of hosts: " +
             subNets[index].realHosts.toString() : "") + ".",
@@ -199,9 +242,15 @@ class _SomePageState extends State<SomePage>{
       _initial = false;
       subNets.add(new SubNetwork.interface());
     }
+
+    _subsCon.addListener(() {
+      updateUnEven(_subsCon.text);
+    });
+
     _subsCountCon.addListener(() {
       updateEven(_subsCountCon.text);
     });
+
     _ipCon.addListener(() {
       // Checks if we can convert string to an address
       if(_operations.canCreate(_ipCon.text))

@@ -125,7 +125,16 @@ class AddressOperations {
     return closest;
   }
 
+  // TODO: Optimize it, because it's brute forced rn
+  int whatPrefix(int hosts) {
+    int i = 0;
+    while(hosts != 1) {
+      hosts ~/= 2;
+      i++;
+    }
 
+    return i;
+  }
 
 
 }
@@ -153,9 +162,16 @@ class SubNetwork {
 
   }
 
+  SubNetwork.unEven(int hos, int rea, int num) {
+    this.hosts = hos;
+    this.realHosts = rea;
+    this.number = num.toString();
+  }
+
   SubNetwork.test();
 
   SubNetwork.interface() {
     this.isItem = false;
+    this.realHosts = 4294967300;
   }
 }
