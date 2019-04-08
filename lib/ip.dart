@@ -51,7 +51,7 @@ class AddressOperations {
   // Produces broadcast address from given network address
   Address broadcast(Address network) => Address.num(network.address | 4294967295 - network.prefix, network.prefix, network.prefixNum);
 
-  // Class
+  // IP Class
   String ipClass(Address ip) {
     if(ip.address >= 4026531840)
       return "E";
@@ -68,6 +68,7 @@ class AddressOperations {
     return "A";
   }
 
+  // Is string address legit
   bool canCreate(String address) {
     List<String> splitted = address.split('.');
 
@@ -111,5 +112,48 @@ class AddressOperations {
 
     // passes every test
     return true;
+  }
+
+  // TODO: Optimize it, because it's brute forced rn
+  int toUpperPow(int x) {
+    int closest = 1;
+
+    while(closest < x) {
+      closest *= 2;
+    }
+
+    return closest;
+  }
+
+
+
+
+}
+
+class SubNetwork {
+  String number = "3";
+  int hosts = 340;
+  int realHosts = 510;
+  bool isItem = true;
+
+  // Strings
+  String networkStr = "192.168.0.10/24";
+  String broadcastStr = "192.168.4.9/24";
+  String rangeStr = "192.168.0.11 - 192.168.4.8";
+  // String smStr = "Subnetwork mask";
+  // String hostsStr = "Hosts";
+
+  SubNetwork(String net, String broad, int hos) {
+    this.networkStr = net;
+    this.broadcastStr = broad;
+    this.hosts = hos;
+    number = "";
+    realHosts = -1;
+  }
+
+  SubNetwork.test();
+
+  SubNetwork.interface() {
+    this.isItem = false;
   }
 }
