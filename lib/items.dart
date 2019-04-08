@@ -11,6 +11,7 @@ class _SomePageState extends State<SomePage>{
   // Class instances
   Items _item = new Items();
   AddressOperations _operations = new AddressOperations();
+  Warnings _war =  new Warnings();
 
   // Addresses
   Address _ip;
@@ -32,6 +33,29 @@ class _SomePageState extends State<SomePage>{
   String _rangeStr = "Network Address - Broadcast Address";
   String _hostsStr = "254";
   String _classStr = "Class";
+
+  // Warnings
+  bool _ipWar = false;
+  bool _subWar = false;
+  bool _subCountWar = false;
+  Color _ipWarCol = Colors.transparent;
+  Color _subWarCol = Colors.transparent;
+  Color _subCountWarCol = Colors.transparent;
+
+  void enableIPWarning(Color col, bool qm) {
+    _ipWar = qm;
+    _ipWarCol = col;
+  }
+
+  void enableSubWarning(Color col, bool qm) {
+    _subWar = qm;
+    _subWarCol = col;
+  }
+
+  void enableSubCountWarning(Color col, bool qm) {
+    _subCountWar = qm;
+    _subCountWarCol = col;
+  }
 
   List<SubNetwork> subNets = new List<SubNetwork>();
 
@@ -59,6 +83,14 @@ class _SomePageState extends State<SomePage>{
       _network = _operations.network(_ip);
       _broadcast = _operations.broadcast(_network);
 
+      if(_ip.prefixNum == 32)
+        enableIPWarning(Colors.red, false);
+      else if(_ip.prefixNum == 31)
+        enableIPWarning(Colors.orangeAccent, true);
+      else
+        enableIPWarning(Colors.transparent, false);
+
+
       // Update all Strings
       _networkStr = _network.toString() + "/" + _network.prefixNum.toString();
       _broadcastStr = _broadcast.toString() + "/" + _broadcast.prefixNum.toString();
@@ -82,6 +114,9 @@ class _SomePageState extends State<SomePage>{
   // Even subnetworks
   // TODO: Clean up the code
   void updateEven(val) {
+    if(_ipStr == "IPs")
+      return;
+
     int subNetsNum;
     // Checks if it's valid
     try {
@@ -93,13 +128,19 @@ class _SomePageState extends State<SomePage>{
     subNetsNum = _operations.toUpperPow(subNetsNum);
     int subHosts = (int.parse(_hostsStr) + 2) ~/ subNetsNum;
 
-    // When there are not enough hosts
-    if(subHosts < 2)
-      return;
-
-
-    Address helperAddress = new Address(_ip.toString() + "/" + _ip.prefixNum.toString());
     setState(() {
+      if(subNetsNum < 0) {
+        enableSubCountWarning(Colors.red, false);
+        //return;
+      }
+      else if(subHosts < 2) {
+        enableSubCountWarning(Colors.red, false);
+        return;
+      }
+      else
+        enableSubCountWarning(Colors.transparent, false);
+
+      Address helperAddress = new Address(_ip.toString() + "/" + _ip.prefixNum.toString());
       // Resets subNets (so there is no repetition)
       subNets = new List<SubNetwork>();
       subNets.add(new SubNetwork.interface());
@@ -134,6 +175,7 @@ class _SomePageState extends State<SomePage>{
     List<String> hostsInSubnetwork = val.split(',');
     List<int> hostsInSubnetworksNum = new List<int>();
 
+    bool negative = false;
     // checks if numbers are numbers
     for(int i = 0; i < hostsInSubnetwork.length; i++) {
       try {
@@ -142,6 +184,9 @@ class _SomePageState extends State<SomePage>{
       } on FormatException {
         return;
       }
+
+      if(hostsInSubnetworksNum[i] < 0)
+        negative = true;
     }
 
     Address helperAddress = new Address(_ip.toString() + "/" + _ip.prefixNum.toString());
@@ -150,10 +195,17 @@ class _SomePageState extends State<SomePage>{
       subNets = new List<SubNetwork>();
       subNets.add(new SubNetwork.interface());
 
+      int sum = 0;
       for(int i = 1; i <= hostsInSubnetwork.length; i++) {
         subNets.add(new SubNetwork.unEven(hostsInSubnetworksNum[i - 1],
             _operations.toUpperPow(hostsInSubnetworksNum[i - 1] + 2) - 2, i));
+        sum += hostsInSubnetworksNum[i - 1];
       }
+
+      if(negative || _war.notEnoughHosts(32 - _ip.prefixNum, sum + 2))
+        enableSubWarning(Colors.red, false);
+      else
+        enableSubWarning(Colors.transparent, false);
 
       // sorting from highest to lowest
       subNets.sort((SubNetwork b, SubNetwork a) => a.realHosts.compareTo(b.realHosts));
@@ -223,8 +275,8 @@ class _SomePageState extends State<SomePage>{
                   )
               ),
               SizedBox(
-                width: 150,
-                child: _item.inputItem("", "Subnetworks", _subsCountCon, _isEven),
+                width: 190,
+                child: _item.inputItem("Subnetworks", _subsCountCon, _isEven, _subCountWarCol, _subCountWar),
               )
             ],
           ),
@@ -236,9 +288,9 @@ class _SomePageState extends State<SomePage>{
   Column subCol() {
     return Column(
       children: <Widget>[
-        _item.inputItem("IP", "Please enter an IP Address", _ipCon, true),
+        _item.inputItem("Please enter an IP Address", _ipCon, true, _ipWarCol, _ipWar),
         row(),
-        _item.inputItem("", 'Use comma to separate subnetworks', _subsCon, !_isEven),
+        _item.inputItem('Use comma to separate subnetworks', _subsCon, !_isEven, _subWarCol, _subWar),
       ],
     );
   }
@@ -270,7 +322,7 @@ class _SomePageState extends State<SomePage>{
     }
 
     _subsCon.addListener(() {
-      updateUnEven(_subsCon.text);
+        updateUnEven(_subsCon.text);
     });
 
     _subsCountCon.addListener(() {
@@ -300,7 +352,7 @@ class _SomePageState extends State<SomePage>{
             ListView(
               padding: EdgeInsets.all(8.0),
               children: <Widget>[
-                _item.inputItem("IP", "Please enter an IP Address", _ipCon, true),
+                _item.inputItem("Please enter an IP Address", _ipCon, true, _ipWarCol, _ipWar),
                 _item.outputItem("Subnetwork Mask", _smStr),
                 _item.outputItem("Network Address", _networkStr),
                 _item.outputItem("Broadcast Address", _broadcastStr),
@@ -346,19 +398,22 @@ class Items {
     );
   }
 
-  Container inputItem(String name, String hintText,
-      TextEditingController con, bool isEnabled) { // Function onUpdateFunc,
+  Container inputItem(String hintText,
+      TextEditingController con, bool isEnabled, Color col, bool qm) { // Function onUpdateFunc,
     return new Container(
         padding: EdgeInsets.only(left: 8.0, right: 8.0),
         child: TextField(
-          style: style(),
+          style: TextStyle(
+            fontSize: 21,
+            color: col != Colors.transparent ? col : null,
+          ),
           enabled: isEnabled,
           controller: con,
           //onChanged: (val) => onUpdateFunc(val),
           decoration: InputDecoration(
             border: InputBorder.none,
+            suffixIcon: Text(qm ? "?" : "!", style: TextStyle(color: col, fontSize: 36,),),
             hintText: hintText,
-            suffixText: name,
           ),
         )
     );
