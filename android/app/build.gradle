@@ -34,11 +34,15 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.ip_calculator"
+        // TODO: Specify min and target SdkVersions (https://developer.android.com/studio/publish/versioning)
         minSdkVersion 16
         targetSdkVersion 28
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        // Versions
+        versionCode 1
+        versionName "0.2"
     }
 
     buildTypes {

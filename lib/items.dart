@@ -34,6 +34,8 @@ class _SomePageState extends State<SomePage>{
   String _hostsStr = "254";
   String _classStr = "Class";
 
+  List<SubNetwork> subNets = new List<SubNetwork>();
+
   // Warnings
   bool _ipWar = false;
   bool _subWar = false;
@@ -56,9 +58,6 @@ class _SomePageState extends State<SomePage>{
     _subCountWar = qm;
     _subCountWarCol = col;
   }
-
-  List<SubNetwork> subNets = new List<SubNetwork>();
-
   // creates dummy subNetworks
   void dummySubNets() {
     // Resets subNets (so there is no repetition)
@@ -112,13 +111,12 @@ class _SomePageState extends State<SomePage>{
   }
 
   // Even subnetworks
-  // TODO: Clean up the code
   void updateEven(val) {
     if(_ipStr == "IPs")
       return;
 
-    int subNetsNum;
     // Checks if it's valid
+    int subNetsNum;
     try {
       subNetsNum = int.parse(val);
     } on FormatException {
@@ -131,7 +129,6 @@ class _SomePageState extends State<SomePage>{
     setState(() {
       if(subNetsNum < 0) {
         enableSubCountWarning(Colors.red, false);
-        //return;
       }
       else if(subHosts < 2) {
         enableSubCountWarning(Colors.red, false);
@@ -237,6 +234,7 @@ class _SomePageState extends State<SomePage>{
     });
   }
 
+  // Switch and subnetworks count
   Row row() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -276,7 +274,8 @@ class _SomePageState extends State<SomePage>{
               ),
               SizedBox(
                 width: 190,
-                child: _item.inputItem("Subnetworks", _subsCountCon, _isEven, _subCountWarCol, _subCountWar),
+                child: _item.inputItem("Subnetworks", _subsCountCon, _isEven, 
+                _subCountWarCol, _subCountWar, 3),
               )
             ],
           ),
@@ -285,16 +284,18 @@ class _SomePageState extends State<SomePage>{
     );
   }
 
+  // Interface widget as a whole
   Column subCol() {
     return Column(
       children: <Widget>[
-        _item.inputItem("Please enter an IP Address", _ipCon, true, _ipWarCol, _ipWar),
+        _item.inputItem("Please enter an IP Address", _ipCon, true, _ipWarCol, _ipWar, 18),
         row(),
-        _item.inputItem('Use comma to separate subnetworks', _subsCon, !_isEven, _subWarCol, _subWar),
+        _item.inputItem('Use comma to separate subnetworks', _subsCon, !_isEven, _subWarCol, _subWar, 100),
       ],
     );
   }
 
+  // List item
   Column itemCol(int index) {
     return Column(
       children: <Widget>[
@@ -316,6 +317,7 @@ class _SomePageState extends State<SomePage>{
   Widget build(BuildContext context) {
     //dummySubNets();
     //subNets = new List<SubNetwork>();
+
     if(_initial) {
       _initial = false;
       subNets.add(new SubNetwork.interface());
@@ -352,7 +354,7 @@ class _SomePageState extends State<SomePage>{
             ListView(
               padding: EdgeInsets.all(8.0),
               children: <Widget>[
-                _item.inputItem("Please enter an IP Address", _ipCon, true, _ipWarCol, _ipWar),
+                _item.inputItem("Please enter an IP Address", _ipCon, true, _ipWarCol, _ipWar, 18),
                 _item.outputItem("Subnetwork Mask", _smStr),
                 _item.outputItem("Network Address", _networkStr),
                 _item.outputItem("Broadcast Address", _broadcastStr),
@@ -398,11 +400,12 @@ class Items {
     );
   }
 
-  Container inputItem(String hintText,
-      TextEditingController con, bool isEnabled, Color col, bool qm) { // Function onUpdateFunc,
+  Container inputItem(String hintText, TextEditingController con, 
+  bool isEnabled, Color col, bool qm, int max) {
     return new Container(
         padding: EdgeInsets.only(left: 8.0, right: 8.0),
         child: TextField(
+          maxLength: max,
           style: TextStyle(
             fontSize: 21,
             color: col != Colors.transparent ? col : null,
@@ -414,6 +417,7 @@ class Items {
             border: InputBorder.none,
             suffixIcon: Text(qm ? "?" : "!", style: TextStyle(color: col, fontSize: 36,),),
             hintText: hintText,
+            counterText: '',
           ),
         )
     );
