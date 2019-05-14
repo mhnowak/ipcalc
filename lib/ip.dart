@@ -184,3 +184,11 @@ class Warnings {
   // when you want more than enough hosts
   bool notEnoughHosts(int prefix, int hosts) => pow(2, prefix).toInt() >= hosts ? false : true;
 }
+
+class Binary {
+
+  String toBinary(int num) {
+    return num.toRadixString(2);
+  }
+
+}

@@ -12,6 +12,7 @@ class _SomePageState extends State<SomePage>{
   Items _item = new Items();
   AddressOperations _operations = new AddressOperations();
   Warnings _war =  new Warnings();
+  Binary _bin = new Binary();
 
   // Addresses
   Address _ip;
@@ -58,6 +59,7 @@ class _SomePageState extends State<SomePage>{
     _subCountWar = qm;
     _subCountWarCol = col;
   }
+  
   // creates dummy subNetworks
   void dummySubNets() {
     // Resets subNets (so there is no repetition)
