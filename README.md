@@ -1,3 +1,3 @@
 # ipcalc
 
-[![YT Preview Video](http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](http://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE)
+["YT Preview Video"](https://youtu.be/86uVJzS5bJE)
